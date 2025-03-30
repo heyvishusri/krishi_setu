@@ -1,19 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-
-
-
-Link
+Link;
 const KrishisetNewResetPassword = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <div className="text-center mb-6">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <div className="mb-6 text-center">
           <img
-            src="https://storage.googleapis.com/a1aa/image/PQfqdD8-_5Cb8Bc1MleO275YGSR23fHhxQBVs9mLW9Y.jpg"
+            src="/images/logo.jpeg"
             alt="Logo with a leaf icon"
-            className="mx-auto mb-2"
+            className="mx-auto mb-2 rounded-full"
             width={50}
             height={50}
           />
@@ -22,25 +19,35 @@ const KrishisetNewResetPassword = () => {
         <form>
           <div className="mb-4">
             <label className="block text-gray-700">New Password</label>
-            <input type="password" placeholder="Enter new password" className="w-full px-3 py-2 border rounded-md" />
+            <input
+              type="password"
+              placeholder="Enter new password"
+              className="w-full px-3 py-2 border rounded-md"
+            />
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Confirm Password</label>
-            <input type="password" placeholder="Confirm new password" className="w-full px-3 py-2 border rounded-md" />
+            <input
+              type="password"
+              placeholder="Confirm new password"
+              className="w-full px-3 py-2 border rounded-md"
+            />
           </div>
           <div className="mb-4">
-          <Link to=''>
-            <button type="submit" className="w-full bg-green-600 text-white px-4 py-2 rounded-md">
+            <Link
+              to="/"
+              type="submit"
+              className="w-full px-4 py-2 text-white bg-green-600 rounded-md"
+            >
               Reset Password
-            </button>
-          </Link>
+            </Link>
           </div>
           <div className="text-center">
             <Link to="/">
-              Remembered your password? <span className="text-green-400 hover:underline"> Sign In</span>
+              Remembered your password?{" "}
+              <span className="text-green-400 hover:underline"> Sign In</span>
             </Link>
           </div>
-
         </form>
       </div>
     </div>
