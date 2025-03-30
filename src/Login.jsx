@@ -6,10 +6,10 @@ Link
 const KrishisetuLogin = () => {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-          <div className="text-center mb-6">
+        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+          <div className="mb-6 text-center">
             {/* <img
-              src="https://storage.googleapis.com/a1aa/image/dKrp1C98kQvoBHey6zLjJ6BPPb2boA4dNNb8PyhA3Fg.jpg"
+              src=""
               alt="Logo with a green leaf icon"
               className="mx-auto mb-2"
               width={50}
@@ -17,7 +17,7 @@ const KrishisetuLogin = () => {
             /> */}
             <h1 className="text-2xl font-bold text-green-700">KRISHISETU</h1>
           </div>
-          <h2 className="text-center text-xl text-green-600 mb-4">
+          <h2 className="mb-4 text-xl text-center text-green-600">
             Welcome to Krishisetu!
           </h2>
           <form>
@@ -43,7 +43,7 @@ const KrishisetuLogin = () => {
                 className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
-            <div className="text-center mb-4">
+            <div className="mb-4 text-center">
               {/* <a href="#" className="text-green-600">
                 Forgot your password?
               </a> */}
@@ -51,12 +51,12 @@ const KrishisetuLogin = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700"
+              className="w-full py-2 text-white bg-green-600 rounded-lg hover:bg-green-700"
             >
               Sign Up
             </button>
           </form>
-          <div className="text-center mt-4">
+          <div className="mt-4 text-center">
             <p className="text-gray-700">
               Are you New?{' '}
               {/* <a href="#" className="text-green-600"> */}
