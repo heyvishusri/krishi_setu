@@ -11,6 +11,8 @@ import Seller from "./Pages/Seller"; // Create a SellerPage component
 import Buyer from "./Pages/Buyer"; // Create a BuyerPage component
 import Dashboard from "./Pages/Navbar"; // Correct the import path for Dashboard
 import Weather from "./Pages/Weather"; // Import Weather component
+import Profile from "./Pages/Profile"; 
+
 
 function App() {
   return (
@@ -46,6 +48,8 @@ const DashboardLayout = () => (
         <Route path="Seller" element={<Seller />} /> {/* Add Seller route */}
         <Route path="Buyer" element={<Buyer />} /> {/* Add Buyer route */}
         <Route path="weather" element={<Weather />} /> {/* Add Weather route */}
+        <Route path="Profile" element={<Profile/>}/>
+        
       </Routes>
     </div>
   </div>
