@@ -14,12 +14,13 @@ const Weather = () => {
 
   // --- IMPORTANT: Replace with your actual OpenWeatherMap API key ---
   // --- Best practice: Store this in an environment variable (.env file) ---
-  const API_KEY = 'c20067050b9a621988bd9b558575ec02';
-  // Example using environment variable: const API_KEY = process.env.REACT_APP_OPENWEATHERMAP_API_KEY;
+  // const API_KEY = '8f4b0130fdaf94f136df39e713e937f5';
+  // Example using environment variable: 
+  const API_KEY = import.meta.env.VITE_OPENWEATHERMAP_API_KEY || '8f4b0130fdaf94f136df39e713e937f5';
 
   // Function to fetch weather data (can be called by city or coordinates)
   const fetchWeatherData = async ({ city = null, lat = null, lon = null }) => {
-    if (!API_KEY || API_KEY === 'c20067050b9a621988bd9b558575ec02') {
+    if (!API_KEY || API_KEY === '8f4b0130fdaf94f136df39e713e937f5') {
        setError('Please add your OpenWeatherMap API key to the code.');
        setLoading(false);
        return;
