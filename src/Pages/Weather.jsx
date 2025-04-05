@@ -7,10 +7,8 @@ const Weather = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load API key from environment variables
   const API_KEY = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;
 
-  // Function to fetch weather data
   const fetchWeatherData = async ({ city = null, lat = null, lon = null }) => {
     if (!API_KEY) {
       setError("API key is missing. Please configure it in the .env file.");
@@ -22,7 +20,7 @@ const Weather = () => {
     setCurrentWeather(null);
     setForecastData(null);
 
-    const units = "metric"; // Metric for Celsius
+    const units = "metric";
     let currentUrl, forecastUrl;
 
     if (city) {
@@ -45,9 +43,7 @@ const Weather = () => {
 
       if (!currentResponse.ok) {
         const errorData = await currentResponse.json();
-        throw new Error(
-          errorData.message || "Failed to fetch current weather."
-        );
+        throw new Error(errorData.message || "Failed to fetch current weather.");
       }
 
       if (!forecastResponse.ok) {
@@ -69,7 +65,6 @@ const Weather = () => {
     }
   };
 
-  // Process forecast data to get daily summaries
   const processForecastData = (list) => {
     const dailyData = {};
     list.forEach((item) => {
