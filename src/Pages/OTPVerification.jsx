@@ -1,8 +1,6 @@
 import "react";
 import { Link } from "react-router-dom";
 
-Link;
-
 const OTPVerification = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

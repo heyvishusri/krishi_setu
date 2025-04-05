@@ -1,0 +1,21 @@
+/* Example CSS for fixed sidebar and scrollable content */
+.sidebar {
+  width: 16rem; /* Equivalent to w-64 in Tailwind */
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  height: 100vh;
+}
+
+.main-content {
+  margin-left: 16rem; /* Space for the fixed sidebar */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.scrollable-content {
+  flex-grow: 1;
+  padding: 1rem;
+  overflow: auto;
+}

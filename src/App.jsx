@@ -1,18 +1,18 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import KrishisetuRegister from "./Pages/Singup";
-import KrishisetuLogin from "./Pages/Login"; // Create a Login component
-import KrishisetuResetPassword from "./Pages/ResetPassword"; // Create a ResetPassword component
-import KrishisetuOTPVerification from "./Pages/OTPVerification ";
+import KrishisetuLogin from "./Pages/Login";
+import KrishisetuResetPassword from "./Pages/ResetPassword";
+import KrishisetuOTPVerification from "./Pages/OtpVerification";
 import KrishisetNewResetPassword from "./Pages/setuResetPassword";
-// Create a SetuResetPassword component
-import Farmer from "./Pages/Farmer"; // Create a FarmerPage component
-import Driver from "./Pages/Driver"; // Create a DriversPage component
-import Seller from "./Pages/Seller"; // Create a SellerPage component
-import Buyer from "./Pages/Buyer"; // Create a BuyerPage component
-import Dashboard from "./Pages/Navbar"; // Correct the import path for Dashboard
-import Weather from "./Pages/Weather"; // Import Weather component
-import Profile from "./Pages/Profile"; 
-
+import Farmer from "./Pages/Farmer";
+import Driver from "./Pages/Driver";
+import Seller from "./Pages/Seller";
+import Buyer from "./Pages/Buyer";
+import Dashboard from "./Pages/Navbar"; // Sidebar/Navbar
+import Weather from "./Pages/Weather";
+import Header from "./layouts/Header"; // Header
+import Profile from "./Pages/Profile";
+import FarmerPostsTable from "./Pages/FarmerPost"; // Import FarmerPost component
 
 function App() {
   return (
@@ -31,7 +31,7 @@ function App() {
             element={<KrishisetNewResetPassword />}
           />
           <Route path="/dashboard/*" element={<DashboardLayout />} />{" "}
-          {/* Add Dashboard route */}
+          {/* Dashboard Route */}
         </Routes>
       </Router>
     </div>
@@ -40,17 +40,31 @@ function App() {
 
 const DashboardLayout = () => (
   <div className="flex min-h-screen bg-gray-100">
-    <Dashboard />
-    <div className="flex-grow p-4">
-      <Routes>
-        <Route path="Farmer" element={<Farmer />} />
-        <Route path="Driver" element={<Driver />} />
-        <Route path="Seller" element={<Seller />} /> {/* Add Seller route */}
-        <Route path="Buyer" element={<Buyer />} /> {/* Add Buyer route */}
-        <Route path="weather" element={<Weather />} /> {/* Add Weather route */}
-        <Route path="Profile" element={<Profile/>}/>
-        
-      </Routes>
+    {/* Sidebar or Navigation Component */}
+    <div className="fixed w-64 h-full bg-white shadow-md">
+      <Dashboard />
+    </div>
+
+    {/* Main Content Area */}
+    <div className="flex flex-col flex-1 ml-64">
+      {/* Header */}
+      <Header />
+
+      {/* Scrollable Content */}
+      <div className="flex-grow h-full p-4 overflow-auto">
+        <div className="overflow-hidden p-9">
+          <Routes>
+            <Route path="Farmer" element={<Farmer />} />
+            <Route path="Driver" element={<Driver />} />
+            <Route path="Seller" element={<Seller />} />
+            <Route path="Buyer" element={<Buyer />} />
+            <Route path="weather" element={<Weather />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="FarmerPost" element={<FarmerPostsTable />} />{" "}
+            {/* Add FarmerPost Route */}
+          </Routes>
+        </div>
+      </div>
     </div>
   </div>
 );
