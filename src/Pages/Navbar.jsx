@@ -121,21 +121,21 @@ const Navbar = () => {
                     Farmer Post
                   </Link>
                   <Link
-                    to="/dashboard/driver-post"
+                    to="/dashboard/DriverPost"
                     className="block w-full p-2 text-sm text-black rounded-lg hover:bg-green-400"
                   >
                     <FontAwesomeIcon icon={faTruck} className="mr-3" /> Driver
                     Post
                   </Link>
                   <Link
-                    to="/dashboard/seller-post"
+                    to="/dashboard/SellerPost"
                     className="block w-full p-2 text-sm text-black rounded-lg hover:bg-green-400"
                   >
                     <FontAwesomeIcon icon={faStore} className="mr-3" /> Seller
                     Post
                   </Link>
                   <Link
-                    to="/dashboard/buyer-post"
+                    to="/dashboard/BuyerPost"
                     className="block w-full p-2 text-sm text-black rounded-lg hover:bg-green-400"
                   >
                     <FontAwesomeIcon icon={faShoppingCart} className="mr-3" />{" "}

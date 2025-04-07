@@ -13,7 +13,13 @@ import Weather from "./Pages/Weather";
 import Header from "./layouts/Header"; // Header
 import Profile from "./Pages/Profile";
 import FarmerPostsTable from "./Pages/FarmerPost"; // Import FarmerPost component
-
+import DriverPostsTable from "./Pages/DriverPost"; // Import DriverPost component
+import SellerPostsTable from "./Pages/SellerPost";
+import BuyerPostTable from "./Pages/BuyerPost"; // Import BuyerPost component
+import FarmerPostEdit from "./Pages/FarmerPostEdit"; // Import FarmerPostEdit component
+import DriverPostEdit from "./Pages/DriverPostEdit"; // Import Weather
+import SellerPostEdit from "./Pages/SellerPostEdit"; //
+import BuyerPostEdit from "./Pages/BuyerPostEdit"; // Import BuyerPostEdit component
 function App() {
   return (
     <div className="">
@@ -62,6 +68,14 @@ const DashboardLayout = () => (
             <Route path="profile" element={<Profile />} />
             <Route path="FarmerPost" element={<FarmerPostsTable />} />{" "}
             {/* Add FarmerPost Route */}
+            <Route path="DriverPost" element={<DriverPostsTable />} />{" "}
+            <Route path="SellerPost" element={<SellerPostsTable />} />{" "}
+            <Route path="BuyerPost" element={<BuyerPostTable />} />{" "}
+            {/* Add BuyerPost Route */}
+            <Route path="FarmerPostEdit" element={<FarmerPostEdit />} />{" "}
+            <Route path="DriverPostEdit" element={<DriverPostEdit />} />{" "}
+            <Route path="SellerPostEdit" element={<SellerPostEdit />} />{" "}
+            <Route path="BuyerPostEdit" element={<BuyerPostEdit />} />{" "}
           </Routes>
         </div>
       </div>

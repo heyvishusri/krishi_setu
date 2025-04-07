@@ -13,7 +13,7 @@ const Seller = () => {
   return (
     <div className="p-4">
       <h1 className="mb-4 text-2xl font-bold">Sellers</h1>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {data.map((item) => (
           <div key={item.id} className="p-4 bg-white rounded-lg shadow-lg">
             <div className="flex items-center mb-4">

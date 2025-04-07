@@ -7,35 +7,14 @@ const Weather = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-<<<<<<< Updated upstream
   // Load API key from environment variables
   const API_KEY = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;
-=======
-  // --- IMPORTANT: Replace with your actual OpenWeatherMap API key ---
-  // --- Best practice: Store this in an environment variable (.env file) ---
-  // const API_KEY = '8f4b0130fdaf94f136df39e713e937f5';
-  // Example using environment variable: 
-  const API_KEY = import.meta.env.VITE_OPENWEATHERMAP_API_KEY || 'c20067050b9a621988bd9b558575ec02';
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
   // Function to fetch weather data
   const fetchWeatherData = async ({ city = null, lat = null, lon = null }) => {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     if (!API_KEY) {
       setError("API key is missing. Please configure it in the .env file.");
       return;
-=======
-=======
->>>>>>> Stashed changes
-    if (!API_KEY || API_KEY === 'c20067050b9a621988bd9b558575ec02') {
-       setError('Please add your OpenWeatherMap API key to the code.');
-       setLoading(false);
-       return;
->>>>>>> Stashed changes
     }
 
     setLoading(true);
