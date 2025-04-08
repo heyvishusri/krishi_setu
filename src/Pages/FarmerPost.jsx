@@ -11,19 +11,7 @@ const FarmerPostsTable = () => {
     imagePreview: null,
   });
 
-  // Removed unused handleInputChange function
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const previewURL = URL.createObjectURL(file);
-      setFormData((prev) => ({
-        ...prev,
-        image: file,
-        imagePreview: previewURL,
-      }));
-    }
-  };
 
   const handleAddPost = () => {
     console.log("New Farmer Post Data:", formData);
@@ -76,16 +64,6 @@ const FarmerPostsTable = () => {
         </button>
       </div>
 
-      {/* Image Upload */}
-      <div className="mb-6">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
-
       {/* Search */}
       <div className="mb-6">
         <input
@@ -95,6 +73,9 @@ const FarmerPostsTable = () => {
           className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         />
       </div>
+
+      {/* Image Upload */}
+      
 
       {/* Table */}
       <div className="overflow-x-auto">
