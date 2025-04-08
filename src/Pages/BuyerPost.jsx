@@ -98,35 +98,15 @@ const BuyerPostsTable = () => {
   const generateSampleData = () => {
     return [...Array(10)].map((_, index) => ({
       id: index + 1,
-      itemNeeded:
-        index % 3 === 0
-          ? "Used Tractor"
-          : index % 3 === 1
-          ? "Wheat Seeds (Certified)"
-          : "Land Lease",
-      itemCategory:
-        index % 3 === 0 ? "Equipment" : index % 3 === 1 ? "Seeds" : "Land",
-      quantity:
-        index % 3 === 0
-          ? "1 Unit"
-          : index % 3 === 1
-          ? `${5 + index} Quintals`
-          : "10 Acres",
-      specifications:
-        index % 3 === 0
-          ? ">30 HP, Good Condition"
-          : index % 3 === 1
-          ? `Variety XYZ-${index}`
-          : "Irrigated, 3-year lease",
+      title: `Post Title ${index + 1}`,
+      location: `Near Village ${String.fromCharCode(65 + index)}`,
+      image: null,
+      needOfArea: `${10 + index} Acres`,
+      priceByBigha: `₹${3000 + index * 100}/Bigha`,
+      callTime: `9:00 AM - 6:00 PM`,
       postedOn: `2024-07-${10 + index} 10:00:00`,
       status: index % 2 === 0 ? "OPEN" : "FULFILLED",
-      location: `Near Village ${String.fromCharCode(65 + index)}`,
-      budget:
-        index % 3 === 0
-          ? "Negotiable"
-          : index % 3 === 1
-          ? `Approx ₹${3000 + index * 100}/Q`
-          : "Market Rate",
+      description: `Description for post ${index + 1}`,
     }));
   };
 
@@ -174,31 +154,34 @@ const BuyerPostsTable = () => {
                 #
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                ITEM NEEDED
+                Title
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                CATEGORY
+                Location
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                QUANTITY
+                Image
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                LOCATION
+                Need of Area
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                POSTED ON
+                Price by Bigha
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                STATUS
+                Call Time
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                SPECIFICATIONS
+                Posted On
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                BUDGET
+                Status
               </th>
               <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                ACTION
+                Description
+              </th>
+              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
+                Action
               </th>
             </tr>
           </thead>
@@ -209,16 +192,30 @@ const BuyerPostsTable = () => {
                   {index + 1}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.itemNeeded}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.itemCategory}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.quantity}
+                  {req.title}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
                   {req.location}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
+                  {req.image ? (
+                    <img
+                      src={req.image}
+                      alt="Post"
+                      className="object-cover w-16 h-16 rounded"
+                    />
+                  ) : (
+                    "No Image"
+                  )}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
+                  {req.needOfArea}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
+                  {req.priceByBigha}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
+                  {req.callTime}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
                   {req.postedOn}
@@ -237,10 +234,7 @@ const BuyerPostsTable = () => {
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.specifications}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.budget || "-"}
+                  {req.description}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
                   <div className="flex space-x-2">
