@@ -41,14 +41,6 @@ function Login() {
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
-          <div className="mb-4 text-center">
-            {/* <a href="#" className="text-green-600">
-                Forgot your password?
-              </a> */}
-            <Link to="/reset" className="text-green-600 hover:underline">
-              Forgot your password?
-            </Link>
-          </div>
           <Link to={"/dashboard"}>
             <button
               type="submit"
