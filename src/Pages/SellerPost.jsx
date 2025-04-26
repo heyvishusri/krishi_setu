@@ -1,272 +1,357 @@
-import { useState } from "react";
-import PropTypes from "prop-types";
+// src/Pages/SellerPost.jsx
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import AddSellerPostModel from "./AddSellerPostModel"; // Import the correct modal
 
-// Mock SellerPostEdit component
-const SellerPostEdit = ({ post, onSave, onCancel }) => {
-  const [editedPost, setEditedPost] = useState(post);
+const BACKEND_URL = "http://localhost:5000";
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setEditedPost((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setEditedPost((prev) => ({
-        ...prev,
-        imageUrl,
-        imageFile: file, // Save if you want to upload to server later
-      }));
-    }
-  };
-
-  return (
-    <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="mb-4 text-xl font-bold">Edit Seller Post</h2>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block mb-1 text-sm font-medium">Title</label>
-          <input
-            name="title"
-            value={editedPost.title}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">
-            Price Per Unit
-          </label>
-          <input
-            name="pricePerUnit"
-            value={editedPost.pricePerUnit}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">Location</label>
-          <input
-            name="location"
-            value={editedPost.location}
-            onChange={handleChange}
-            className="w-full p-2 border border-gray-300 rounded"
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">Image</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="w-full"
-          />
-          {editedPost.imageUrl && (
-            <img
-              src={editedPost.imageUrl}
-              alt="Preview"
-              className="object-cover w-32 h-32 mt-2 border rounded"
-            />
-          )}
-        </div>
-
-        <div className="flex space-x-2">
-          <button
-            onClick={() => onSave(editedPost)}
-            className="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700"
-          >
-            Save
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-white bg-gray-400 rounded hover:bg-gray-500"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Main Component
 const SellerPostsTable = () => {
-  const [isEditMode, setEditMode] = useState(false);
-  const [selectedPost, setSelectedPost] = useState(null);
-  const [tableData, setTableData] = useState(
-    [...Array(10)].map((_, index) => ({
-      id: index + 1,
-      title: `Grade A Wheat Batch #${index + 1}`,
-      produceType:
-        index % 3 === 0 ? "Wheat" : index % 3 === 1 ? "Rice" : "Vegetables",
-      pricePerUnit: `₹${2000 + index * 50} / Quintal`,
-      location: `Village ${String.fromCharCode(65 + index)}, District X`,
-      postedOn: `2024-05-${10 + index} 09:15:${30 + index}`,
-      status: index % 4 === 0 ? "SOLD OUT" : "AVAILABLE",
-      description: `Freshly harvested ${
-        index % 3 === 0 ? "wheat" : index % 3 === 1 ? "rice" : "vegetables"
-      }. Quantity: ${10 + index} Quintals. Call for details.`,
-      imageUrl: null,
-    }))
-  );
+  // --- States ---
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [postsData, setPostsData] = useState([]);
+  const [editingPostData, setEditingPostData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
-  const handleEditPost = (postId) => {
-    const postToEdit = tableData.find((post) => post.id === postId);
-    if (postToEdit) {
-      setSelectedPost(postToEdit);
-      setEditMode(true);
+  // --- Fetch User's Seller Posts ---
+  const fetchMyPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("User not authenticated");
+      // Update API endpoint
+      const response = await axios.get(`${BACKEND_URL}/api/seller-posts/my`, {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      });
+      setPostsData(response.data);
+    } catch (err) {
+      handleApiError(err, "fetch your seller posts");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSaveEdit = (updatedPost) => {
-    const updatedData = tableData.map((post) =>
-      post.id === updatedPost.id ? updatedPost : post
-    );
-    setTableData(updatedData);
-    setEditMode(false);
-    setSelectedPost(null);
+  useEffect(() => {
+    fetchMyPosts();
+  }, []);
+
+  // --- Generic Error Handler ---
+  const handleApiError = (err, action = "perform action") => {
+    console.error(`Error ${action}:`, err);
+    const message =
+      err.response?.data?.message || err.message || `Failed to ${action}.`;
+    toast.error(message);
+    if (err.response?.status === 401) {
+      /* Handle auth error */
+    }
   };
 
-  const handleCancelEdit = () => {
-    setEditMode(false);
-    setSelectedPost(null);
+  // --- Modal Handling ---
+  const handleOpenAddModal = () => setIsAddModalOpen(true);
+  const handleCloseAddModal = () => !submitLoading && setIsAddModalOpen(false);
+  const handleOpenEditModal = (post) => {
+    setEditingPostData(post);
+    setIsEditModalOpen(true);
+  };
+  const handleCloseEditModal = () => {
+    if (!submitLoading) {
+      setIsEditModalOpen(false);
+      setEditingPostData(null);
+    }
   };
 
-  if (isEditMode) {
-    return (
-      <SellerPostEdit
-        post={selectedPost}
-        onSave={handleSaveEdit}
-        onCancel={handleCancelEdit}
-      />
-    );
-  }
+  // --- Submission Handlers ---
+  const handleAddSubmit = async (newPostData) => {
+    setSubmitLoading(true);
+    const formData = new FormData();
+    Object.keys(newPostData).forEach((key) => {
+      if (newPostData[key] !== undefined && newPostData[key] !== null)
+        formData.append(key, newPostData[key]);
+    });
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.post(
+        `${BACKEND_URL}/api/seller-posts`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        }
+      );
+      setPostsData((prev) => [response.data, ...prev]);
+      toast.success("Seller post created!"); // Update message
+      handleCloseAddModal();
+    } catch (err) {
+      handleApiError(err, "create seller post"); // Update message
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleEditSubmit = async (updatedPostData) => {
+    if (!editingPostData?._id) return;
+    setSubmitLoading(true);
+    const formData = new FormData();
+    Object.keys(updatedPostData).forEach((key) => {
+      if (updatedPostData[key] !== undefined && updatedPostData[key] !== null)
+        formData.append(key, updatedPostData[key]);
+    });
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.put(
+        `${BACKEND_URL}/api/seller-posts/${editingPostData._id}`,
+        formData,
+        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+      );
+      setPostsData((prev) =>
+        prev.map((post) =>
+          post._id === editingPostData._id ? response.data : post
+        )
+      );
+      toast.success("Seller post updated!"); // Update message
+      handleCloseEditModal();
+    } catch (err) {
+      handleApiError(err, "update seller post"); // Update message
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  // --- Delete Handler ---
+  const handleDeletePost = async (postId, postTitle) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the post "${
+          postTitle || "this post"
+        }"?`
+      )
+    )
+      return;
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.delete(
+        `${BACKEND_URL}/api/seller-posts/${postId}`,
+        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+      );
+      setPostsData((prev) =>
+        prev.filter((post) => post._id !== response.data.id)
+      );
+      toast.success(response.data.message || "Seller post deleted!"); // Update message
+    } catch (err) {
+      handleApiError(err, "delete seller post"); // Update message
+    }
+  };
+
+  // --- Search (Placeholder) ---
+  const handleSearchChange = (e) => {
+    console.log(`Search input: ${e.target.value}`);
+  };
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Seller Posts</h2>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">My Seller Posts</h2>{" "}
+        {/* Update Title */}
         <button
-          onClick={() => console.log("Add Post Modal Opened")}
-          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+          onClick={handleOpenAddModal}
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
-          + Add Seller Posts
+          + Add Seller Post {/* Update Button Text */}
         </button>
       </div>
-
-      {/* Table */}
-      <div className="w-full overflow-x-auto">
-        <table className="w-full border border-collapse border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              {[
-                "#",
-                "IMAGE",
-                "PRODUCE/TITLE",
-                "PRODUCE TYPE",
-                "PRICE PER UNIT",
-                "LOCATION",
-                "POSTED ON",
-                "STATUS",
-                "DESCRIPTION",
-                "ACTION",
-              ].map((heading) => (
-                <th
-                  key={heading}
-                  className="px-4 py-3 text-sm font-medium text-left text-gray-700 border border-gray-300"
-                >
-                  {heading}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((post, index) => (
-              <tr key={post.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 border border-gray-300">
-                  {index + 1}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.imageUrl ? (
-                    <img
-                      src={post.imageUrl}
-                      alt="Post"
-                      className="object-cover w-16 h-16 rounded"
-                    />
-                  ) : (
-                    <span className="text-xs text-gray-400">No image</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.title}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.produceType}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.pricePerUnit}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.location}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.postedOn}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium text-white rounded ${
-                      post.status === "AVAILABLE"
-                        ? "bg-green-600"
-                        : "bg-red-600"
-                    }`}
-                  >
-                    {post.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  {post.description}
-                </td>
-                <td className="px-4 py-3 border border-gray-300">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditPost(post.id)}
-                      className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => console.log(`Delete Post ID: ${post.id}`)}
-                      className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Search */}
+      <div className="mb-6">
+        {" "}
+        <input
+          type="text"
+          placeholder="Search Your Seller Posts..."
+          onChange={handleSearchChange}
+          className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+        />{" "}
       </div>
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="text-center text-gray-600">Loading seller posts...</div>
+      )}{" "}
+      {/* Update Text */}
+      {error && (
+        <div className="p-4 my-4 text-red-700 bg-red-100 border border-red-300 rounded-md">
+          Error: {error}
+        </div>
+      )}
+      {/* Table */}
+      {!loading && !error && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-collapse border-gray-200">
+            {/* --- Update Table Headers --- */}
+            <thead className="bg-gray-100">
+              <tr>
+                {/* Added Quantity, changed some names */}
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  #
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Image
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Title
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Produce Type
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Quantity
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Price/Unit
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Location
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Status
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Description
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Created At
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {postsData.length === 0 && !loading ? (
+                <tr>
+                  <td
+                    colSpan="11"
+                    className="px-4 py-4 text-center text-gray-500 border border-gray-300"
+                  >
+                    No seller posts found. Click '+ Add Seller Post' to create
+                    one.
+                  </td>
+                </tr>
+              ) : (
+                postsData.map((post, index) => (
+                  <tr key={post._id} className="hover:bg-gray-50">
+                    {/* --- Update Table Data Cells --- */}
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-2 text-sm border border-gray-300">
+                      {" "}
+                      <img
+                        src={
+                          post.imageUrl
+                            ? `${BACKEND_URL}${post.imageUrl}`
+                            : "https://via.placeholder.com/80?text=No+Image"
+                        }
+                        alt={post.title}
+                        className="object-cover w-16 h-16 rounded"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src =
+                            "https://via.placeholder.com/80?text=No+Image";
+                        }}
+                      />{" "}
+                    </td>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900 border border-gray-300">
+                      {post.title}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.produceType}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.quantity || "-"}
+                    </td>{" "}
+                    {/* Show quantity or dash */}
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.pricePerUnit}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.location}
+                    </td>
+                    <td className="px-4 py-2 text-sm border border-gray-300">
+                      {" "}
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold leading-tight rounded-full ${
+                          post.status === "Available"
+                            ? "bg-green-100 text-green-800"
+                            : post.status === "Sold Out"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {" "}
+                        {post.status}{" "}
+                      </span>{" "}
+                    </td>
+                    <td
+                      className="max-w-xs px-4 py-2 text-sm text-gray-700 truncate border border-gray-300"
+                      title={post.description}
+                    >
+                      {post.description}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300 whitespace-nowrap">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300 whitespace-nowrap">
+                      <button
+                        onClick={() => handleOpenEditModal(post)}
+                        className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        aria-label={`Edit ${post.title}`}
+                      >
+                        {" "}
+                        Edit{" "}
+                      </button>
+                      <button
+                        onClick={() => handleDeletePost(post._id, post.title)}
+                        className="px-3 py-1 ml-2 text-xs font-medium text-white bg-red-600 rounded shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        aria-label={`Delete ${post.title}`}
+                      >
+                        {" "}
+                        Delete{" "}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {/* Add Modal */}
+      <AddSellerPostModel
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onSubmit={handleAddSubmit}
+        isSubmitting={submitLoading}
+      />
+      {/* Edit Modal */}
+      <AddSellerPostModel
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onSubmit={handleEditSubmit}
+        initialData={editingPostData}
+        isSubmitting={submitLoading}
+      />
     </div>
   );
-};
-
-SellerPostEdit.propTypes = {
-  post: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    pricePerUnit: PropTypes.string.isRequired,
-    location: PropTypes.string.isRequired,
-    imageUrl: PropTypes.string,
-  }).isRequired,
-  onSave: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
 };
 
 export default SellerPostsTable;

@@ -1,43 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AddFarmerPostModal from "./Pages/AddFarmerPostModal";
+import AddDriverPostModel from "./Pages/AddDriverPostModel";
+import AddSellerPostModel from "./Pages/AddSellerPostModel";
+import AddBuyerPostModel from "./Pages/AddBuyerPostModel";
 import KrishisetuRegister from "./Pages/Singup";
 import KrishisetuLogin from "./Pages/Login";
-import KrishisetuResetPassword from "./Pages/ResetPassword";
-import KrishisetuOTPVerification from "./Pages/OtpVerification";
-import KrishisetNewResetPassword from "./Pages/setuResetPassword";
+
 import Farmer from "./Pages/Farmer";
 import Driver from "./Pages/Driver";
 import Seller from "./Pages/Seller";
 import Buyer from "./Pages/Buyer";
-import Dashboard from "./Pages/Navbar"; // Sidebar/Navbar
+import Dashboard from "./Pages/Navbar";
 import Weather from "./Pages/Weather";
-import Header from "./layouts/Header"; // Header
+import Header from "./layouts/Header";
 import Profile from "./Pages/Profile";
-import FarmerPostsTable from "./Pages/FarmerPost"; // Import FarmerPost component
-import DriverPostsTable from "./Pages/DriverPost"; // Import DriverPost component
+import FarmerPostsTable from "./Pages/FarmerPost";
+import DriverPostsTable from "./Pages/DriverPost";
 import SellerPostsTable from "./Pages/SellerPost";
-import BuyerPostTable from "./Pages/BuyerPost"; // Import BuyerPost component
-import FarmerPostEdit from "./Pages/FarmerPostEdit"; // Import FarmerPostEdit component
-import DriverPostEdit from "./Pages/DriverPostEdit"; // Import Weather
-import SellerPostEdit from "./Pages/SellerPostEdit"; //
-import BuyerPostEdit from "./Pages/BuyerPostEdit"; // Import BuyerPostEdit component
+import BuyerPostTable from "./Pages/BuyerPost";
+
 function App() {
   return (
     <div className="">
       <Router>
         <Routes>
-          <Route path="/" element={<KrishisetuLogin />} /> {/* Default Route */}
+          {/* Default open Dashboard */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+          {/* Register and Login */}
           <Route path="/register" element={<KrishisetuRegister />} />
-          <Route path="/reset" element={<KrishisetuResetPassword />} />
-          <Route
-            path="/OTPVerification"
-            element={<KrishisetuOTPVerification />}
-          />
-          <Route
-            path="/setuResetPassword"
-            element={<KrishisetNewResetPassword />}
-          />
-          <Route path="/dashboard/*" element={<DashboardLayout />} />{" "}
-          {/* Dashboard Route */}
+          <Route path="/login" element={<KrishisetuLogin />} />
+
+          {/* Dashboard */}
+          <Route path="/dashboard/*" element={<DashboardLayout />} />
         </Routes>
       </Router>
     </div>
@@ -46,36 +47,148 @@ function App() {
 
 const DashboardLayout = () => (
   <div className="flex min-h-screen bg-gray-100">
-    {/* Sidebar or Navigation Component */}
+    {/* Sidebar/Navbar */}
     <div className="fixed w-64 h-full bg-white shadow-md">
       <Dashboard />
     </div>
 
-    {/* Main Content Area */}
+    {/* Main content */}
     <div className="flex flex-col flex-1 ml-64">
-      {/* Header */}
       <Header />
 
-      {/* Scrollable Content */}
       <div className="flex-grow h-full p-4 overflow-auto">
         <div className="overflow-hidden p-9">
           <Routes>
-            <Route path="Farmer" element={<Farmer />} />
-            <Route path="Driver" element={<Driver />} />
-            <Route path="Seller" element={<Seller />} />
-            <Route path="Buyer" element={<Buyer />} />
-            <Route path="weather" element={<Weather />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="FarmerPost" element={<FarmerPostsTable />} />{" "}
-            {/* Add FarmerPost Route */}
-            <Route path="DriverPost" element={<DriverPostsTable />} />{" "}
-            <Route path="SellerPost" element={<SellerPostsTable />} />{" "}
-            <Route path="BuyerPost" element={<BuyerPostTable />} />{" "}
-            {/* Add BuyerPost Route */}
-            <Route path="FarmerPostEdit" element={<FarmerPostEdit />} />{" "}
-            <Route path="DriverPostEdit" element={<DriverPostEdit />} />{" "}
-            <Route path="SellerPostEdit" element={<SellerPostEdit />} />{" "}
-            <Route path="BuyerPostEdit" element={<BuyerPostEdit />} />{" "}
+            {/* All protected Routes */}
+            <Route
+              path="Farmer"
+              element={
+                <ProtectedRoute>
+                  <Farmer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="Driver"
+              element={
+                <ProtectedRoute>
+                  <Driver />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="Seller"
+              element={
+                <ProtectedRoute>
+                  <Seller />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="Buyer"
+              element={
+                <ProtectedRoute>
+                  <Buyer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="weather"
+              element={
+                <ProtectedRoute>
+                  <Weather />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="Profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="FarmerPost"
+              element={
+                <ProtectedRoute>
+                  <FarmerPostsTable />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="DriverPost"
+              element={
+                <ProtectedRoute>
+                  <DriverPostsTable />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="SellerPost"
+              element={
+                <ProtectedRoute>
+                  <SellerPostsTable />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="BuyerPost"
+              element={
+                <ProtectedRoute>
+                  <BuyerPostTable />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="FarmerPostsTable"
+              element={
+                <ProtectedRoute>
+                  <FarmerPostsTable />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="AddFarmerPostModal"
+              element={
+                <ProtectedRoute>
+                  <AddFarmerPostModal />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="AddDriverPostModel"
+              element={
+                <ProtectedRoute>
+                  <AddDriverPostModel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="AddSellerPostModel"
+              element={
+                <ProtectedRoute>
+                  <AddSellerPostModel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="AddBuyerPostModel"
+              element={
+                <ProtectedRoute>
+                  <AddBuyerPostModel />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="Header"
+              element={
+                <ProtectedRoute>
+                  <Header />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </div>

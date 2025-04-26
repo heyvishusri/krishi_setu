@@ -1,391 +1,359 @@
+// src/Pages/BuyerPost.jsx
 import { useState, useEffect } from "react";
-import BuyerPostEdit from "./BuyerPostEdit"; // Import the edit component
+import axios from "axios";
+import { toast } from "react-hot-toast";
+import AddBuyerPostModel from "./AddBuyerPostModel"; // Import the correct modal
+
+const BACKEND_URL = "http://localhost:5000";
 
 const BuyerPostsTable = () => {
-  const [isEditMode, setEditMode] = useState(false); // State to toggle edit mode
-  const [selectedPost, setSelectedPost] = useState(null); // State to store the selected post
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    itemNeeded: "",
-    itemCategory: "",
-    quantity: "",
-    specifications: "",
-    location: "",
-    budget: "",
-    image: null,
-    imagePreview: null,
-  });
+  // --- States ---
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [postsData, setPostsData] = useState([]);
+  const [editingPostData, setEditingPostData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (formData.imagePreview) {
-      URL.revokeObjectURL(formData.imagePreview);
-    }
-    if (file) {
-      setFormData((prev) => ({
-        ...prev,
-        image: file,
-        imagePreview: URL.createObjectURL(file),
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, image: null, imagePreview: null }));
+  // --- Fetch User's Buyer Posts ---
+  const fetchMyPosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("User not authenticated");
+      // Update API endpoint
+      const response = await axios.get(`${BACKEND_URL}/api/buyer-posts/my`, {
+        headers: { Authorization: `Bearer ${userInfo.token}` },
+      });
+      setPostsData(response.data);
+    } catch (err) {
+      handleApiError(err, "fetch your buyer requirements");
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    return () => {
-      if (formData.imagePreview) {
-        URL.revokeObjectURL(formData.imagePreview);
-      }
-    };
-  }, [formData.imagePreview]);
+    fetchMyPosts();
+  }, []);
 
-  const closeModalAndCleanup = () => {
-    if (formData.imagePreview) {
-      URL.revokeObjectURL(formData.imagePreview);
+  // --- Generic Error Handler ---
+  const handleApiError = (err, action = "perform action") => {
+    console.error(`Error ${action}:`, err);
+    const message =
+      err.response?.data?.message || err.message || `Failed to ${action}.`;
+    toast.error(message);
+    if (err.response?.status === 401) {
+      /* Handle auth error */
     }
-    setModalOpen(false);
-    setFormData({
-      itemNeeded: "",
-      itemCategory: "",
-      quantity: "",
-      specifications: "",
-      location: "",
-      budget: "",
-      image: null,
-      imagePreview: null,
+  };
+
+  // --- Modal Handling ---
+  const handleOpenAddModal = () => setIsAddModalOpen(true);
+  const handleCloseAddModal = () => !submitLoading && setIsAddModalOpen(false);
+  const handleOpenEditModal = (post) => {
+    setEditingPostData(post);
+    setIsEditModalOpen(true);
+  };
+  const handleCloseEditModal = () => {
+    if (!submitLoading) {
+      setIsEditModalOpen(false);
+      setEditingPostData(null);
+    }
+  };
+
+  // --- Submission Handlers ---
+  const handleAddSubmit = async (newPostData) => {
+    setSubmitLoading(true);
+    const formData = new FormData();
+    Object.keys(newPostData).forEach((key) => {
+      if (newPostData[key] !== undefined && newPostData[key] !== null)
+        formData.append(key, newPostData[key]);
     });
-  };
 
-  const handleAddPost = () => {
-    console.log("New Requirement/Buyer Post Data:", formData);
-    closeModalAndCleanup();
-  };
-
-  const handleEditPost = (postId) => {
-    console.log(`Edit button clicked for Requirement ID: ${postId}`);
-    const postToEdit = tableData.find((post) => post.id === postId);
-    if (postToEdit) {
-      setSelectedPost(postToEdit);
-      setEditMode(true); // Enable edit mode
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.post(
+        `${BACKEND_URL}/api/buyer-posts`,
+        formData,
+        {
+          headers: { Authorization: `Bearer ${userInfo.token}` },
+        }
+      );
+      setPostsData((prev) => [response.data, ...prev]);
+      toast.success("Buyer requirement posted!"); // Update message
+      handleCloseAddModal();
+    } catch (err) {
+      handleApiError(err, "post buyer requirement"); // Update message
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
-  const handleSaveEdit = (updatedPost) => {
-    console.log("Updated Post Data:", updatedPost);
-    setEditMode(false); // Exit edit mode
-    setSelectedPost(null); // Clear selected post
+  const handleEditSubmit = async (updatedPostData) => {
+    if (!editingPostData?._id) return;
+    setSubmitLoading(true);
+    const formData = new FormData();
+    Object.keys(updatedPostData).forEach((key) => {
+      if (updatedPostData[key] !== undefined && updatedPostData[key] !== null)
+        formData.append(key, updatedPostData[key]);
+    });
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.put(
+        `${BACKEND_URL}/api/buyer-posts/${editingPostData._id}`,
+        formData,
+        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+      );
+      setPostsData((prev) =>
+        prev.map((post) =>
+          post._id === editingPostData._id ? response.data : post
+        )
+      );
+      toast.success("Buyer requirement updated!"); // Update message
+      handleCloseEditModal();
+    } catch (err) {
+      handleApiError(err, "update buyer requirement"); // Update message
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
-  const handleCancelEdit = () => {
-    setEditMode(false); // Exit edit mode
-    setSelectedPost(null); // Clear selected post
+  // --- Delete Handler ---
+  const handleDeletePost = async (postId, postTitle) => {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete the requirement "${
+          postTitle || "this post"
+        }"?`
+      )
+    )
+      return;
+
+    try {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+      if (!userInfo?.token) throw new Error("Authentication required.");
+      // Update API endpoint
+      const response = await axios.delete(
+        `${BACKEND_URL}/api/buyer-posts/${postId}`,
+        { headers: { Authorization: `Bearer ${userInfo.token}` } }
+      );
+      setPostsData((prev) =>
+        prev.filter((post) => post._id !== response.data.id)
+      );
+      toast.success(response.data.message || "Buyer requirement deleted!"); // Update message
+    } catch (err) {
+      handleApiError(err, "delete buyer requirement"); // Update message
+    }
   };
 
-  const handleDeletePost = (postId) => {
-    console.log(`Delete button clicked for Requirement ID: ${postId}`);
+  // --- Search (Placeholder) ---
+  const handleSearchChange = (e) => {
+    console.log(`Search input: ${e.target.value}`);
   };
-
-  const handleSearchChange = (event) => {
-    console.log(`Search requirement input changed: ${event.target.value}`);
-  };
-
-  const generateSampleData = () => {
-    return [...Array(10)].map((_, index) => ({
-      id: index + 1,
-      title: `Post Title ${index + 1}`,
-      location: `Near Village ${String.fromCharCode(65 + index)}`,
-      image: null,
-      needOfArea: `${10 + index} Acres`,
-      priceByBigha: `₹${3000 + index * 100}/Bigha`,
-      callTime: `9:00 AM - 6:00 PM`,
-      postedOn: `2024-07-${10 + index} 10:00:00`,
-      status: index % 2 === 0 ? "OPEN" : "FULFILLED",
-      description: `Description for post ${index + 1}`,
-    }));
-  };
-
-  const [tableData] = useState(generateSampleData());
-
-  if (isEditMode) {
-    return (
-      <BuyerPostEdit
-        post={selectedPost}
-        onSave={handleSaveEdit}
-        onCancel={handleCancelEdit}
-      />
-    );
-  }
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      {/* Header Section */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Buyer Posts</h2>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">
+          My Buyer Requirements
+        </h2>{" "}
+        {/* Update Title */}
         <button
-          onClick={() => setModalOpen(true)}
-          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          onClick={handleOpenAddModal}
+          className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         >
-          + Add Buyer Posts
+          + Add Buyer Post {/* Update Button Text */}
         </button>
       </div>
-
-      {/* Search Bar Section */}
+      {/* Search */}
       <div className="mb-6">
+        {" "}
         <input
           type="text"
-          placeholder="Search Requirements (e.g., Tractor, Seeds...)"
+          placeholder="Search Your Requirements..."
           onChange={handleSearchChange}
           className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
+        />{" "}
       </div>
-
-      {/* Table Section */}
-      <div className="w-full">
-        <table className="w-full border border-collapse border-gray-200">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                #
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Title
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Location
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Image
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Need of Area
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Price by Bigha
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Call Time
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Posted On
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Status
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Description
-              </th>
-              <th className="px-4 py-2 text-sm font-medium text-left text-gray-700 border border-gray-300">
-                Action
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {tableData.map((req, index) => (
-              <tr key={req.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {index + 1}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.title}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.location}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.image ? (
-                    <img
-                      src={req.image}
-                      alt="Post"
-                      className="object-cover w-16 h-16 rounded"
-                    />
-                  ) : (
-                    "No Image"
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.needOfArea}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.priceByBigha}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.callTime}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.postedOn}
-                </td>
-                <td className="px-4 py-3 text-sm border border-gray-300">
-                  <span
-                    className={`px-2 py-1 text-xs font-medium text-white rounded ${
-                      req.status === "OPEN"
-                        ? "bg-blue-600"
-                        : req.status === "FULFILLED"
-                        ? "bg-green-600"
-                        : "bg-gray-500"
-                    }`}
-                  >
-                    {req.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  {req.description}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border border-gray-300">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleEditPost(req.id)}
-                      className="px-3 py-1 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeletePost(req.id)}
-                      className="px-3 py-1 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Add Requirement Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          {/* Modal content div - REMOVED max-h-[90vh] and overflow-y-auto */}
-          <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-lg">
-            <h3 className="mb-4 text-xl font-bold text-gray-800">
-              Post Your Requirement
-            </h3>
-            {/* Form Fields */}
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Item Needed
-              </label>
-              <input
-                type="text"
-                name="itemNeeded"
-                value={formData.itemNeeded}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., Tractor, Seeds"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Category
-              </label>
-              <input
-                type="text"
-                name="itemCategory"
-                value={formData.itemCategory}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., Equipment, Seeds, Land"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Quantity
-              </label>
-              <input
-                type="text"
-                name="quantity"
-                value={formData.quantity}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., 1 Unit, 50 Kg, 10 Acres"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Specifications / Details
-              </label>
-              <textarea
-                name="specifications"
-                value={formData.specifications}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., >30 HP, Certified, Irrigated"
-                rows="3"
-              ></textarea>
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Location
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., Near Village X, District Y"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Budget (Optional)
-              </label>
-              <input
-                type="text"
-                name="budget"
-                value={formData.budget}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="e.g., Approx ₹50,000, Market Rate"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block mb-2 text-sm font-medium text-gray-700">
-                Upload Example Image (Optional)
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="w-full px-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-              />
-              {formData.imagePreview && (
-                <div className="mt-4">
-                  <p className="mb-1 text-sm font-medium text-gray-700">
-                    Preview:
-                  </p>
-                  <img
-                    src={formData.imagePreview}
-                    alt="Preview"
-                    className="object-contain w-auto h-32 border border-gray-200 rounded"
-                  />
-                </div>
-              )}
-            </div>
-            {/* Modal Actions */}
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={closeModalAndCleanup}
-                className="px-4 py-2 mr-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddPost}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
-              >
-                Add
-              </button>
-            </div>
-          </div>
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="text-center text-gray-600">
+          Loading your requirements...
+        </div>
+      )}{" "}
+      {/* Update Text */}
+      {error && (
+        <div className="p-4 my-4 text-red-700 bg-red-100 border border-red-300 rounded-md">
+          Error: {error}
         </div>
       )}
+      {/* Table */}
+      {!loading && !error && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-collapse border-gray-200">
+            {/* --- Update Table Headers --- */}
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  #
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Item Needed
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Category
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Quantity
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Location
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Budget
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Status
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Specifications
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Image
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Created At
+                </th>
+                <th className="px-4 py-2 text-xs font-semibold tracking-wider text-left text-gray-600 uppercase border border-gray-300">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {postsData.length === 0 && !loading ? (
+                <tr>
+                  <td
+                    colSpan="11"
+                    className="px-4 py-4 text-center text-gray-500 border border-gray-300"
+                  >
+                    No requirements posted. Click '+ Add Buyer Post' to create
+                    one.
+                  </td>
+                </tr>
+              ) : (
+                postsData.map((post, index) => (
+                  <tr key={post._id} className="hover:bg-gray-50">
+                    {/* --- Update Table Data Cells --- */}
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-2 text-sm font-medium text-gray-900 border border-gray-300">
+                      {post.itemNeeded}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.itemCategory}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.quantity || "-"}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.location}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300">
+                      {post.budget || "-"}
+                    </td>
+                    <td className="px-4 py-2 text-sm border border-gray-300">
+                      {" "}
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold leading-tight rounded-full ${
+                          post.status === "Open"
+                            ? "bg-blue-100 text-blue-800"
+                            : post.status === "Fulfilled"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {" "}
+                        {post.status}{" "}
+                      </span>{" "}
+                    </td>
+                    <td
+                      className="max-w-xs px-4 py-2 text-sm text-gray-700 truncate border border-gray-300"
+                      title={post.specifications}
+                    >
+                      {post.specifications || "-"}
+                    </td>
+                    <td className="px-4 py-2 text-sm border border-gray-300">
+                      {" "}
+                      <img
+                        src={
+                          post.imageUrl
+                            ? `${BACKEND_URL}${post.imageUrl}`
+                            : "https://via.placeholder.com/80?text=No+Image"
+                        }
+                        alt={post.itemNeeded}
+                        className="object-cover w-16 h-16 rounded"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src =
+                            "https://via.placeholder.com/80?text=No+Image";
+                        }}
+                      />{" "}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300 whitespace-nowrap">
+                      {new Date(post.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-2 text-sm text-gray-700 border border-gray-300 whitespace-nowrap">
+                      <button
+                        onClick={() => handleOpenEditModal(post)}
+                        className="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        aria-label={`Edit ${post.itemNeeded}`}
+                      >
+                        {" "}
+                        Edit{" "}
+                      </button>
+                      <button
+                        onClick={() =>
+                          handleDeletePost(post._id, post.itemNeeded)
+                        }
+                        className="px-3 py-1 ml-2 text-xs font-medium text-white bg-red-600 rounded shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        aria-label={`Delete ${post.itemNeeded}`}
+                      >
+                        {" "}
+                        Delete{" "}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {/* Add Modal */}
+      <AddBuyerPostModel
+        isOpen={isAddModalOpen}
+        onClose={handleCloseAddModal}
+        onSubmit={handleAddSubmit}
+        isSubmitting={submitLoading}
+      />
+      {/* Edit Modal */}
+      <AddBuyerPostModel
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onSubmit={handleEditSubmit}
+        initialData={editingPostData}
+        isSubmitting={submitLoading}
+      />
     </div>
   );
 };

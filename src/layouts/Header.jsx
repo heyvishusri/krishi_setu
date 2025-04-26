@@ -1,106 +1,143 @@
-import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom"; // Import useLocation for tracking current page
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserCircle, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+// Header.jsx
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+
+// Assuming your backend runs here
+const BACKEND_URL = "http://localhost:5000";
 
 const Header = () => {
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State for logout confirmation modal
   const navigate = useNavigate();
-  const location = useLocation(); // Get the current location
+  const [user, setUser] = useState(null); // Stores user info for display
 
+  // Function to load user info from localStorage
+  const fetchUserInfo = () => {
+    try {
+      const userInfoString = localStorage.getItem("userInfo");
+      if (userInfoString) {
+        const userInfo = JSON.parse(userInfoString);
+        setUser(userInfo);
+        // console.log("Header: User info loaded/updated", userInfo); // Keep for debugging if needed
+      } else {
+        setUser(null); // Clear user if no info found
+        console.log("Header: No user info found in localStorage.");
+      }
+    } catch (error) {
+      console.error(
+        "Header: Failed to parse user info from localStorage",
+        error
+      );
+      setUser(null); // Clear user on parse error
+      localStorage.removeItem("userInfo"); // Clear corrupted data
+    }
+  };
+
+  // Effect to load user info on initial mount AND listen for storage changes
+  useEffect(() => {
+    fetchUserInfo(); // Initial load
+
+    const handleStorageChange = (event) => {
+      // Listen for changes specifically to the 'userInfo' key or removal
+      if (
+        event.key === "userInfo" ||
+        (event.key === null && !localStorage.getItem("userInfo"))
+      ) {
+        console.log(
+          "Header: 'storage' event detected for 'userInfo'. Refetching..."
+        );
+        fetchUserInfo(); // Re-fetch user info if 'userInfo' changed
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    console.log("Header: 'storage' event listener added.");
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      console.log("Header: 'storage' event listener removed.");
+    };
+  }, []); // Empty dependency array: runs only on mount and unmount
+
+  // Logout handler
   const handleLogout = () => {
-    setShowLogoutConfirm(true); // Show confirmation modal
+    localStorage.removeItem("userInfo");
+    toast.success("Logged out successfully!");
+    setUser(null); // Clear user state immediately
+    navigate("/login"); // Redirect to login
   };
 
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false); // Close modal
-    navigate("/"); // Redirect to login page
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false); // Close modal
-    navigate(location.pathname); // Redirect back to the current page
+  // --- Profile navigation handler ---
+  const handleProfileClick = () => {
+    // *** CORRECTED PATH: Use the actual path defined in your Router setup ***
+    // Assuming it's lowercase '/dashboard/profile' based on common conventions
+    const profilePath = "/dashboard/profile";
+    console.log(`Header: Navigating to ${profilePath} ...`);
+    navigate(profilePath);
   };
 
   return (
-    <div className="sticky top-0 z-40 w-full bg-white shadow-sm">
-      <div className="flex items-center justify-between h-16 px-4">
-        {/* Centered Header Title */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-2xl font-bold text-green-800">
-            Profile Information
-          </span>
-        </div>
-
-        {/* Profile Dropdown */}
-        <div className="relative ml-auto">
-          <button
-            onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-            className="flex items-center p-1 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            aria-label="User menu"
-            aria-haspopup="true"
-          >
-            <img
-              src="/images/dp.jpeg"
-              alt="Profile"
-              className="object-cover w-10 h-10 rounded-full"
-            />
-          </button>
-          {showProfileDropdown && (
+    <header className="flex items-center justify-between p-4 font-bold text-white shadow-md bg-emerald-800">
+      <Link to="/dashboard" className="text-xl hover:text-gray-200">
+        KrishiSetu
+      </Link>
+      <nav className="flex items-center space-x-4">
+        {user ? (
+          <>
+            {/* Profile Clickable Area */}
             <div
-              className="absolute right-0 z-50 w-48 py-1 mt-2 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
-              role="menu"
-              aria-labelledby="user-menu"
+              className="flex items-center space-x-2 cursor-pointer group"
+              onClick={handleProfileClick} // Use the handler
+              title="Update Profile" // Add tooltip
             >
-              <Link
-                to="/dashboard/profile" // Navigate to the Profile page
-                onClick={() => setShowProfileDropdown(false)} // Close dropdown on click
-                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                role="menuitem"
-              >
-                <FontAwesomeIcon icon={faUserCircle} className="w-4 h-4 mr-2" />
-                Profile
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                role="menuitem"
-              >
-                <FontAwesomeIcon icon={faSignOutAlt} className="w-4 h-4 mr-2" />
-                Logout
-              </button>
+              <img
+                // Construct image URL safely
+                src={
+                  user.profilePicture &&
+                  user.profilePicture !== "/uploads/default_avatar.png"
+                    ? `${BACKEND_URL}${user.profilePicture}` // Use server path if not default
+                    : "/images/dp.jpeg" // Local default/fallback
+                }
+                alt="Profile"
+                className="object-cover w-8 h-8 transition-shadow duration-200 rounded-full ring-1 ring-offset-1 ring-offset-emerald-800 ring-white group-hover:ring-emerald-300"
+                // Fallback in case image loading fails
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loop
+                  e.target.src = "/images/dp.jpeg"; // Set to default local image
+                }}
+              />
+              <span className="text-sm group-hover:text-emerald-200">
+                {user.name || "User"} {/* Display name, fallback if needed */}
+              </span>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Logout Confirmation Modal */}
-      {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="p-6 bg-white rounded-lg shadow-lg w-80">
-            <h2 className="text-lg font-bold text-gray-800">Confirm Logout</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Are you sure you want to logout?
-            </p>
-            <div className="flex justify-end mt-4 space-x-4">
-              <button
-                onClick={confirmLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300"
-              >
-                Confirm
-              </button>
-              <button
-                onClick={cancelLogout}
-                className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="px-3 py-1.5 text-xs font-semibold text-emerald-800 bg-white rounded-md shadow-sm hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-emerald-800 focus:ring-white"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          // Render login/signup if no user data in state
+          <>
+            <Link
+              to="/login"
+              className="px-3 py-1.5 text-sm rounded-md hover:bg-emerald-700"
+            >
+              {" "}
+              Login{" "}
+            </Link>
+            <Link
+              to="/register"
+              className="px-3 py-1.5 text-sm font-semibold bg-white text-emerald-800 rounded-md shadow-sm hover:bg-emerald-50"
+            >
+              {" "}
+              Signup{" "}
+            </Link>
+          </>
+        )}
+      </nav>
+    </header>
   );
 };
 

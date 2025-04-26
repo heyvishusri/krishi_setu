@@ -3,32 +3,35 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "proxy": "http://localhost:5000",
+  "description": "Krishi Setu is a web application that connects farmers with agricultural experts and resources to enhance their productivity and sustainability. It provides a platform for farmers to access information, tools, and support for modern farming practices, helping them make informed decisions and improve their yields.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "serve": "vite preview",
-    "start:json-server": "json-server --watch db.json --port 5000"
+    "serve": "vite preview"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@tailwindcss/vite": "^4.0.7",
+    "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "fortawesome": "^0.0.1-security",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.3.0"
+    "react-router-dom": "^7.5.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",

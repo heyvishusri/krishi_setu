@@ -2,3 +2,11 @@ json-server --watch db.json --port 5000
 
 npx json-server --watch db.json
 npm run start:json-server
+
+
+
+Now I have a one navbar that open After successfully login , 
+in this Navbar 3 main parts Krishi Bazar, Krishi Post, and weather , I already attached pic see and in every parts 4 another subpart which is open dropdown when I click on Krishi Bazar then open Farmer,Driver,Seller,Buyer 
+when I click on another section then close previuos  section and  open Farmer Post, Driver Post, Seller Post
+weather section is not changing is perfact working so dont do anything in weather ,
+you see on top on header that is include my profile info ---when I click on icon then open my Profile page, But I want to that Profile page info from backend that I register  
